@@ -8,15 +8,12 @@ RUN mkdir -p /app/.apt/usr/bin
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#using-pipes
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Set up the Chrome PPA
-# Update the package list and install chrome
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-  && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> \
-     /etc/apt/sources.list.d/google.list \
+# Set up the Chrome repository key and source
+RUN apt-get update -y && apt-get install --no-install-recommends -y gnupg wget \
+  && wget -q -O /usr/share/keyrings/google-chrome-keyring.gpg https://dl-ssl.google.com/linux/linux_signing_key.pub \
+  && echo "deb [signed-by=/usr/share/keyrings/google-chrome-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
   && apt-get update -y \
-  && apt-get install --no-install-recommends -y \
-     google-chrome-stable \
-     jq \
+  && apt-get install --no-install-recommends -y google-chrome-stable jq \
   && rm -rf /var/lib/apt/lists/*
 
 COPY ./docker/utility/wrap_chrome_binary.sh /app/docker/utility/wrap_chrome_binary.sh
